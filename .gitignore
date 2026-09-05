@@ -1,0 +1,16 @@
+# Сборка
+/target
+/C:
+*.exe
+
+# Секреты и локальное состояние
+.env
+/config.toml
+.cargo/config.toml
+
+# Рантайм-данные: записи сессий, логи, отладочные снимки, модели
+/sessions
+/dumps
+/dev
+/models
+*.log

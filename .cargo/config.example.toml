@@ -1,0 +1,18 @@
+# Скопируйте в .cargo/config.toml и поправьте пути под свою машину.
+# Настоящий файл в репозиторий не попадает: пути у всех разные.
+
+# Короткий каталог сборки. Вложенные пути ggml-vulkan вылезают за предел
+# MAX_PATH в 260 символов, и MSBuild падает с FTK1011. Каталог покороче это
+# лечит. Можно задать и переменной окружения CARGO_TARGET_DIR.
+[build]
+target-dir = "C:/gt"
+
+# Сборка whisper-rs-sys требует двух внешних инструментов, которых нет в PATH
+# по умолчанию: libclang для bindgen и cmake для сборки whisper.cpp.
+[env]
+LIBCLANG_PATH = "C:\Program Files\LLVM\bin"
+CMAKE = "C:\Program Files\CMake\bin\cmake.exe"
+
+# Бэкенд Vulkan в ggml: компилятор шейдеров и заголовки. Подставьте свою
+# установленную версию Vulkan SDK.
+VULKAN_SDK = "C:\VulkanSDK\1.4.357.0"

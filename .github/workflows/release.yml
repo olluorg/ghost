@@ -1,0 +1,88 @@
+name: release
+
+# Сборка релиза под Windows. Запускается по тегу вида v1.2.3 и вручную.
+# Готовый ghost.exe прикладывается к GitHub Release с тем же тегом.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # нужно, чтобы создать релиз и приложить файл
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      # Тот же обход MAX_PATH, что и в .cargo/config.example.toml: вложенные
+      # пути ggml-vulkan вылезают за 260 символов, и MSBuild падает с FTK1011.
+      # Короткий каталог сборки это лечит.
+      CARGO_TARGET_DIR: C:\t
+      # libclang для bindgen в whisper-rs-sys. На windows-latest LLVM уже стоит.
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      # Кэш зависимостей: whisper, wgpu и ort собираются долго.
+      - name: Кэш cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-windows
+
+      # Vulkan SDK — бэкенд ggml для распознавания. Самый хрупкий шаг: если
+      # экшен сломается, замените его установкой SDK из LunarG. После установки
+      # экшен сам выставляет VULKAN_SDK.
+      - name: Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: latest
+          vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang
+          vulkan-use-cache: true
+
+      # CMake на windows-latest уже установлен; убеждаемся, что виден.
+      - name: Проверка инструментов
+        shell: pwsh
+        run: |
+          cmake --version
+          clang --version
+          if (-not (Test-Path $env:LIBCLANG_PATH)) {
+            Write-Error "libclang не найден по $env:LIBCLANG_PATH"
+          }
+
+      - name: Сборка релиза
+        shell: pwsh
+        run: cargo build --release --locked
+
+      - name: Переименовать артефакт
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item "$env:CARGO_TARGET_DIR\release\ghost.exe" "dist\ghost-windows-x64.exe"
+
+      - name: Приложить к сборке (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-windows-x64
+          path: dist/ghost-windows-x64.exe
+
+      # Только для тега: создаём релиз и прикладываем exe. Модели в сборку не
+      # входят — их пользователь кладёт в models/ отдельно.
+      - name: GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/ghost-windows-x64.exe
+          body: |
+            Сборка под Windows x64.
+
+            Модели в комплект не входят — положите в `models/` рядом с exe:
+            - `ggml-large-v3-turbo-q5_0.bin` (whisper)
+            - `spk-resnet34.onnx` (различение голосов, необязательно)
+
+            Перед запуском задайте `ROUTERAI_KEY` в `.env` (см. `.env.example`).

@@ -1,0 +1,96 @@
+[overlay]
+x = 1155.0
+y = 100.0
+width = 1314.0
+height = 1200.0
+opacity = 0.93
+font_size = 15.0
+
+[input]
+pre_roll_ms = 300
+min_hold_ms = 250
+auto = true
+
+[vad]
+threshold = 0.5
+endpoint_ms = 550
+min_speech_ms = 400
+pre_roll_ms = 300
+max_utterance_s = 30
+suppress_mic_while_loopback = true
+answer_them = true
+answer_me = false
+
+[speculation]
+enabled = true
+min_speech_ms = 1500
+interval_ms = 1400
+max_per_utterance = 2
+
+[llm]
+base_url = "https://routerai.ru/api/v1"
+prompt_path = "prompts/default.md"
+vision_model = "meta/muse-spark-1.3-contributor"
+vision_max_tokens = 8000
+screen_target = "window"
+screen_prompt = "На экране то, что сейчас видит пользователь. Не пересказывай экран — он его видит. Если это код или текст для правки, назови, что исправить, со ссылкой на строку. Если это задача или вопрос, дай ответ. Держись формата суфлёра."
+history_turns = 60
+history_images = 3
+
+[llm.auto]
+model = "inception/mercury-2.5-preview"
+fallback_model = "anthropic/claude-haiku-4.5"
+max_tokens = 4000
+reasoning = false
+
+[llm.manual]
+model = "inception/mercury-2.5-preview"
+fallback_model = "anthropic/claude-haiku-4.5"
+max_tokens = 8000
+reasoning = false
+
+[stt]
+model_path = "models/ggml-large-v3-turbo-q5_0.bin"
+language = "ru"
+confidence = 0.55
+best_of = 5
+no_speech_thold = 0.6
+entropy_thold = 2.4
+logprob_thold = -1.0
+
+[voices]
+enabled = true
+model_path = "models/spk-resnet34.onnx"
+threshold = 0.62
+max_voices = 6
+
+[remote]
+enabled = false
+port = 8788
+width = 1600
+fps = 3
+quality = 62
+audio = true
+token = ""
+tunnel = "ssh"
+tunnel_exe = ""
+
+[hotkeys]
+theirs = "LControl"
+mine = "LShift"
+screen = "RControl"
+reset = "Ctrl+Alt+R"
+settings = "Ctrl+Alt+S"
+listen = "Ctrl+Alt+L"
+remote = "Ctrl+Alt+G"
+mute = "Ctrl+Alt+M"
+move_window = "Ctrl+Alt+D"
+input = "Ctrl+Alt+Enter"
+screenshot = "Ctrl+Alt+P"
+session = "Ctrl+Alt+Space"
+rate = "Ctrl+Alt+X"
+quit = "Ctrl+Alt+Q"
+
+[dev]
+enabled = true
+dir = "dev"

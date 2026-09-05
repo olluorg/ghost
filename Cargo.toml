@@ -1,0 +1,53 @@
+[package]
+name = "ghost"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.8", features = ["ws"] }
+base64 = "0.23"
+crossbeam-channel = "0.5"
+earshot = "1.2"
+env_logger = "0.11"
+eframe = "0.36"
+egui = "0.36"
+egui_commonmark = "0.25"
+hound = "3.5"
+image = "0.25"
+log = "0.4"
+ort = { version = "2.0.0-rc.13", features = ["download-binaries"] }
+qrcodegen = "1.8"
+rand = "0.9"
+raw-window-handle = "0.6"
+reqwest = { version = "0.13", features = ["blocking", "json"] }
+rustfft = "6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "time"] }
+toml = "1"
+wasapi = "0.24"
+whisper-rs = { version = "0.16", features = ["vulkan"] }
+xcap = "0.9"
+
+[dependencies.windows]
+version = "0.62"
+features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_System_Com", "Win32_Media_Audio", "Win32_System_Threading", "Win32_System_LibraryLoader", "Win32_System_SystemInformation", "Win32_Graphics_Dwm", "Win32_UI_Shell"]
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+# Профиль для отладки: тот же код, но без LTO и с параллельной кодогенерацией.
+# Полная сборка release идёт три минуты, эта — меньше минуты; для проверки
+# поведения окна разница между ними никакой роли не играет.
+[profile.fast]
+inherits = "release"
+lto = false
+codegen-units = 16
+
+[dev-dependencies]
+serde_json = "1"

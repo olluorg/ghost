@@ -1,0 +1,39 @@
+name: ci
+
+# Проверка сборки и тестов. На каждый push в main и на pull request.
+# Инструменты те же, что и для релиза, но профиль быстрый (без LTO) и вместо
+# готового exe — прогон тестов.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    env:
+      CARGO_TARGET_DIR: C:\t
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Кэш cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-windows
+
+      - name: Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: latest
+          vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang
+          vulkan-use-cache: true
+
+      - name: Тесты
+        shell: pwsh
+        run: cargo test --profile fast --locked
