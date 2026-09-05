@@ -36,7 +36,7 @@ jobs:
           $ver = (Invoke-RestMethod "https://vulkan.lunarg.com/sdk/latest/windows.txt").Trim()
           Write-Host "Vulkan SDK $ver"
           $exe = "$env:RUNNER_TEMP\VulkanSDK-Installer.exe"
-          $url = "https://sdk.lunarg.com/sdk/download/$ver/windows/VulkanSDK-$ver-Installer.exe"
+          $url = "https://sdk.lunarg.com/sdk/download/$ver/windows/vulkan_sdk.exe"
           Invoke-WebRequest $url -OutFile $exe
           # Тихая установка через Qt Installer Framework.
           $p = Start-Process $exe -Wait -PassThru -ArgumentList `
