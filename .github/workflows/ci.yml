@@ -27,12 +27,25 @@ jobs:
         with:
           shared-key: ci-windows
 
+      # Vulkan SDK — бэкенд ggml. Ставим готовый установщик LunarG: в нём уже
+      # собран glslc, тогда как сборка компонентов из исходников на CI хрупкая
+      # (именно на ней всё и падало — MSB8066 при сборке Glslang).
       - name: Vulkan SDK
-        uses: humbletim/setup-vulkan-sdk@v1.2.1
-        with:
-          vulkan-query-version: latest
-          vulkan-components: Vulkan-Headers, Vulkan-Loader, Glslang
-          vulkan-use-cache: true
+        shell: pwsh
+        run: |
+          $ver = (Invoke-RestMethod "https://vulkan.lunarg.com/sdk/latest/windows.txt").Trim()
+          Write-Host "Vulkan SDK $ver"
+          $exe = "$env:RUNNER_TEMP\VulkanSDK-Installer.exe"
+          $url = "https://sdk.lunarg.com/sdk/download/$ver/windows/VulkanSDK-$ver-Installer.exe"
+          Invoke-WebRequest $url -OutFile $exe
+          # Тихая установка через Qt Installer Framework.
+          $p = Start-Process $exe -Wait -PassThru -ArgumentList `
+            "--accept-licenses","--default-answer","--confirm-command","install"
+          if ($p.ExitCode -ne 0) { throw "установщик Vulkan SDK вернул $($p.ExitCode)" }
+          $sdk = "C:\VulkanSDK\$ver"
+          if (-not (Test-Path "$sdk\Bin\glslc.exe")) { throw "glslc не найден в $sdk\Bin" }
+          "VULKAN_SDK=$sdk" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          "$sdk\Bin"       | Out-File $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Тесты
         shell: pwsh
